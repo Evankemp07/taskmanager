@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - Task Manager{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <!-- Header & Create New Task List Button -->
+        <div class="text-center mb-4">
+            <h2 class="fw-bold">Your Task Lists</h2>
+            <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#createTaskListModal">
+                <i class="bi bi-plus-circle"></i> Create New Task List
+            </button>
+        </div>
+
+        {% if task_lists %}
+            {% for task_list in task_lists %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{ task_list.name }}</h5>
+                    <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editListModal{{ task_list.id }}">Edit List</button>
+                </div>
+
+                <ul class="list-group list-group-flush">
+                    {% for task in task_list.tasks.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                            <div class="task-title">
+                                {{ task.title }}
+                                <span class="badge {% if task.completed %}bg-success{% else %}bg-warning{% endif %}">
+                                    {% if task.completed %}✔ Completed{% else %}⏳ Pending{% endif %}
+                                </span>
+                            </div>
+                            <div class="btn-group mt-2 mt-md-0">
+                                {% if not task.completed %}
+                                    <a href="{% url 'mark_completed' task.id %}" class="btn btn-success btn-sm">✔ Complete</a>
+                                {% endif %}
+                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editTaskModal{{ task.id }}">Edit</button>
+                            </div>
+                        </li>
+
+                        <!-- Edit Task Modal -->
+                        <div class="modal fade" id="editTaskModal{{ task.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Edit Task</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form method="POST" action="{% url 'edit_task' task.id %}">
+                                            {% csrf_token %}
+                                            <div class="mb-3">
+                                                <label class="form-label">Task Title</label>
+                                                <input type="text" name="title" class="form-control" value="{{ task.title }}" required>
+                                            </div>
+                                            <div class="mb-3 form-check">
+                                                <input type="checkbox" name="completed" class="form-check-input" {% if task.completed %}checked{% endif %}>
+                                                <label class="form-check-label">Mark as Completed</label>
+                                            </div>
+                                            <button type="submit" class="btn btn-success w-100">Save Changes</button>
+                                        </form>
+                                        <hr>
+                                        <form method="POST" action="{% url 'delete_task' task.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger w-100">Delete Task</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <li class="list-group-item text-muted">No tasks yet. Add one below.</li>
+                    {% endfor %}
+                </ul>
+
+                <div class="card-footer text-center">
+                    <a href="{% url 'add_task' task_list.id %}" class="btn btn-primary">Add Task</a>
+                </div>
+            </div>
+
+            <!-- Edit List Modal -->
+            <div class="modal fade" id="editListModal{{ task_list.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Edit Task List</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form method="POST" action="{% url 'edit_task_list' task_list.id %}">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label class="form-label">Task List Name</label>
+                                    <input type="text" name="name" class="form-control" value="{{ task_list.name }}" required>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">Save Changes</button>
+                            </form>
+                            <hr>
+                            <form method="POST" action="{% url 'delete_task_list' task_list.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger w-100">Delete Task List</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        {% else %}
+            <p class="text-center text-muted">No task lists available. Create one first.</p>
+        {% endif %}
+    </div>
+
+    <!-- Create Task List Modal -->
+    <div class="modal fade" id="createTaskListModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Task List</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'create_task_list' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Task List Name</label>
+                            <input type="text" name="name" class="form-control" placeholder="Enter list name" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Create Task List</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm p-4" style="max-width: 500px; border-radius: 8px;">
+        <h2 class="mb-3 text-primary"><i class="bi bi-person-plus"></i> Register</h2>
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Username</label>
+                <input type="text" name="username" class="form-control" placeholder="Choose a username" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Email</label>
+                <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Password</label>
+                <input type="password" name="password1" class="form-control" placeholder="Create a password" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Confirm Password</label>
+                <input type="password" name="password2" class="form-control" placeholder="Confirm password" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-person-plus-fill"></i> Register
+            </button>
+        </form>
+
+        <div class="text-center mt-3">
+            <a href="{% url 'login' %}">Already have an account? <strong>Login</strong></a>
+        </div>
+    </div>
+</div>
+{% endblock %}

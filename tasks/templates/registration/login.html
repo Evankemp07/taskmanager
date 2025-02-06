@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm p-4" style="max-width: 500px; border-radius: 8px;">
+        <h2 class="mb-3 text-primary"><i class="bi bi-box-arrow-in-right"></i> Login</h2>
+
+        <form method="post" onsubmit="showLoading()">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Username</label>
+                <input type="text" name="username" class="form-control" placeholder="Enter your username" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Password</label>
+                <input type="password" name="password" class="form-control" placeholder="Enter your password" required>
+            </div>
+
+            <button id="login-button" type="submit" class="btn btn-primary w-100">
+                <span class="spinner-border spinner-border-sm d-none" id="loading-spinner"></span><i class="bi bi-box-arrow-in-right"></i> Login</h2>
+            </button>
+        </form>
+
+        <div class="text-center mt-3">
+            <a href="{% url 'register' %}">Don't have an account? <strong>Register</strong></a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function showLoading() {
+        let loginButton = document.getElementById('login-button');
+        loginButton.innerHTML = `<span class="spinner-border spinner-border-sm" style="width: 1rem; height: 1rem;"></span> Logging in...`;
+        loginButton.disabled = true;
+    }
+</script>
+{% endblock %}
+
