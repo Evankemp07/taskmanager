@@ -24,6 +24,7 @@ venv\Scripts\activate    # For Windows
 pip install -r requirements.txt
 
 # Apply Migrations
+python manage.py makemigrations tasks
 python manage.py migrate
 
 # Start the Django Server
@@ -67,9 +68,12 @@ pip install -r requirements.txt
 
 ### **4️⃣ Start the Django Server**
 
-Run the following command to start the test server:
+Run the following command to start the test server and create a superuser:
 
 ```sh
+python manage.py createsuperuser
+python manage.py makemigrations tasks
+python manage.py migrate
 python manage.py runserver 0.0.0.0:8000
 ```
 
