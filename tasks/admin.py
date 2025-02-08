@@ -58,7 +58,7 @@ class TaskListAdmin(DjangoObjectActions, admin.ModelAdmin):
     def download_template_action(self, request, obj=None):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="tasks_template.csv"'
-        df = pd.DataFrame(columns=["Username", "Task List", "Task", "Completed"])
+        df = pd.DataFrame(columns=["username", "task_list", "task", "completed"])
         df.to_csv(response, index=False)
         return response
 
@@ -76,7 +76,9 @@ class TaskListAdmin(DjangoObjectActions, admin.ModelAdmin):
     def upload_tasks(self, request):
         if request.method == "POST" and request.FILES.get("task_file"):
             file = request.FILES["task_file"]
+
             try:
+                # Determine file type
                 if file.name.endswith(".csv"):
                     df = pd.read_csv(file)
                 elif file.name.endswith(".xlsx"):
@@ -85,28 +87,55 @@ class TaskListAdmin(DjangoObjectActions, admin.ModelAdmin):
                     messages.error(request, "Invalid file format. Upload a CSV or Excel file.")
                     return redirect("..")
 
+                # Normalize column names
                 df.columns = df.columns.str.strip().str.lower()
 
-                for _, row in df.iterrows():
+                required_fields = {"username", "task_list", "task", "completed"}
+                if not required_fields.issubset(df.columns):
+                    messages.error(request, f"Missing required columns. Required: {required_fields}")
+                    return redirect("..")
+
+                skipped_rows = []
+                created_tasks = 0
+
+                for index, row in df.iterrows():
                     username = str(row.get("username", "")).strip()
                     task_list_name = str(row.get("task_list", "")).strip()
                     task_title = str(row.get("task", "")).strip()
                     completed = str(row.get("completed", "false")).strip().lower() in ['true', '1', 'yes']
-                    
-                    if username and task_list_name and task_title:
-                        user, created = User.objects.get_or_create(username=username, defaults={"email": f"{username}@example.com"})
-                        if created:
-                            user.set_password(f"{username}1234")
-                            user.save()
-                        task_list, _ = TaskList.objects.get_or_create(name=task_list_name, user=user)
-                        task, task_created = Task.objects.get_or_create(title=task_title, task_list=task_list, defaults={"completed": completed})
-                        if not task_created:
-                            task.completed = completed
-                            task.save()
-                    else:
-                        messages.error(request, f"Missing required fields in row: {row}")
 
-                messages.success(request, "Tasks uploaded successfully!")
+                    if not username or not task_list_name or not task_title:
+                        skipped_rows.append(f"Row {index + 1}: {row.to_dict()}")
+                        continue
+
+                    # Ensure User exists
+                    user, created = User.objects.get_or_create(
+                        username=username,
+                        defaults={"email": f"{username}@example.com"}
+                    )
+                    if created:
+                        user.set_password(f"{username}1234")  # Set default password
+                        user.save()
+
+                    # Ensure TaskList exists
+                    task_list, _ = TaskList.objects.get_or_create(name=task_list_name, user=user)
+
+                    # Ensure Task exists or update its status
+                    task, task_created = Task.objects.get_or_create(
+                        title=task_title,
+                        task_list=task_list,
+                        defaults={"completed": completed}
+                    )
+                    if not task_created:
+                        task.completed = completed
+                        task.save()
+
+                    created_tasks += 1
+
+                if skipped_rows:
+                    messages.warning(request, f"Skipped {len(skipped_rows)} rows due to missing fields. Details: {skipped_rows[:3]}...")
+
+                messages.success(request, f"Tasks uploaded successfully! {created_tasks} tasks added or updated.")
                 return redirect("..")
 
             except Exception as e:

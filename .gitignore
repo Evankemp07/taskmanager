@@ -8,12 +8,10 @@ db.sqlite3
 *.db
 migrations/
 
-# Ignore cache and compiled files
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Ignore secret settings
 .env
 *.log
