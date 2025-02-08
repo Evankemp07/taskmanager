@@ -16,7 +16,7 @@ The purpose of this application is to help users manage everyday tasks more effe
 
 ```sh
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/Evankemp07/taskmanager.git
 cd taskflow
 
 # (Optional) Create a Virtual Environment
